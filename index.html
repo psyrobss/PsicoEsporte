@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PsicoReab - LAFORTE | FACISA | UFRN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        :root {
+            --laforte-blue-dark: #113E59;
+            --laforte-blue: #1A4A73;
+            --laforte-amber: #F2AB6D;
+            --laforte-orange: #D95A2B;
+            --laforte-bg: #F2F2F2;
+        }
+
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: var(--laforte-bg);
+            color: var(--laforte-blue-dark);
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease-out; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+
+        .sidebar-active {
+            border-right: 4px solid var(--laforte-amber);
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--laforte-amber);
+        }
+
+        .card-scale {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card-scale:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .imagetica-script {
+            border-left: 6px solid var(--laforte-orange);
+            background-color: white;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+        }
+
+        .ufrn-gradient {
+            background: linear-gradient(135deg, var(--laforte-blue-dark) 0%, var(--laforte-blue) 100%);
+        }
+    </style>
+    <!-- Chosen Palette: LAFORTE Brand (#1A4A73, #113E59, #F2AB6D, #D95A2B, #F2F2F2) -->
+    <!-- Application Structure Plan: 
+         - Navegação Lateral: Organizada por fluxo clínico (Avaliação -> Intervenção -> Prática).
+         - Identidade: Cores institucionais e logos FACISA/UFRN/PROEX e LAFORTE.
+         - Secção de Intervenção: Detalhada com Autodiálogo, Relaxamento, Reestruturação Cognitiva e Goal Setting.
+         - Imagética Motora: Workshop com scripts variados baseados no modelo PETTLEP.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-80 ufrn-gradient text-white flex flex-col flex-shrink-0 z-30 transition-transform duration-300 transform -translate-x-full md:translate-x-0 absolute md:relative h-full shadow-2xl" id="sidebar">
+        <div class="p-8 border-b border-white/10 flex flex-col items-center">
+            <img src="image_22b453.png" alt="Logótipo LAFORTE" class="w-40 h-auto mb-4 bg-white/10 p-2 rounded-xl backdrop-blur-sm">
+            <h1 class="text-xl font-extrabold text-center leading-tight tracking-tight mt-2">LAFORTE <span class="text-[#F2AB6D] block text-xs font-normal uppercase tracking-widest">Fisioterapia do Esporte</span></h1>
+        </div>
+        
+        <nav class="flex-1 overflow-y-auto py-6">
+            <ul class="space-y-1">
+                <li><button onclick="switchTab('home')" class="nav-btn w-full text-left px-8 py-4 flex items-center gap-3 transition-all sidebar-active" data-target="home"><span>&#127968;</span> Dashboard Inicial</button></li>
+                <li><button onclick="switchTab('assessment')" class="nav-btn w-full text-left px-8 py-4 flex items-center gap-3 transition-all text-slate-300 hover:bg-white/5" data-target="assessment"><span>&#128203;</span> Escalas de Avaliação</button></li>
+                <li><button onclick="switchTab('intervention')" class="nav-btn w-full text-left px-8 py-4 flex items-center gap-3 transition-all text-slate-300 hover:bg-white/5" data-target="intervention"><span>&#9881;&#65039;</span> Técnicas de Intervenção</button></li>
+                <li><button onclick="switchTab('imagetica')" class="nav-btn w-full text-left px-8 py-4 flex items-center gap-3 transition-all text-slate-300 hover:bg-white/5" data-target="imagetica"><span>&#127916;</span> Imagética Motora</button></li>
+                <li><button onclick="switchTab('cases')" class="nav-btn w-full text-left px-8 py-4 flex items-center gap-3 transition-all text-slate-300 hover:bg-white/5" data-target="cases"><span>&#128188;</span> Casos Clínicos</button></li>
+                <li><button onclick="switchTab('research')" class="nav-btn w-full text-left px-8 py-4 flex items-center gap-3 transition-all text-slate-300 hover:bg-white/5" data-target="research"><span>&#128300;</span> Plano de Pesquisa</button></li>
+            </ul>
+        </nav>
+        
+        <div class="p-6 bg-black/20 text-[10px] text-center text-slate-300 font-bold uppercase tracking-widest border-t border-white/5">
+            FACISA | UFRN | SANTA CRUZ
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col relative overflow-hidden bg-[#F2F2F2]">
+        
+        <!-- Header -->
+        <header class="h-24 bg-white border-b border-slate-200 flex items-center justify-between px-10 z-20 shadow-sm">
+            <button id="menu-toggle" class="md:hidden text-[#113E59] text-3xl">&#9776;</button>
+            <div class="hidden md:flex flex-col">
+                <span class="text-xs font-bold text-[#D95A2B] uppercase tracking-widest">Psicologia da Reabilitação Esportiva</span>
+                <h2 class="text-xl font-extrabold text-[#113E59]" id="current-title">Dashboard Inicial</h2>
+            </div>
+            <div class="flex items-center gap-6">
+                <img src="image_22b851.png" alt="UFRN FACISA PROEX" class="h-12 w-auto">
+            </div>
+        </header>
+
+        <!-- Body Content -->
+        <div class="flex-1 overflow-y-auto p-6 md:p-12">
+
+            <!-- DASHBOARD SECTION -->
+            <section id="home" class="tab-content active max-w-6xl mx-auto">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
+                    <div class="lg:col-span-2 space-y-6">
+                        <h2 class="text-4xl font-extrabold text-[#113E59] tracking-tight italic">Mente Forte, <span class="text-[#D95A2B]">Retorno Seguro.</span></h2>
+                        <p class="text-lg text-slate-600 leading-relaxed">
+                            No <strong>LAFORTE/FACISA</strong>, a reabilitação física é integrada à saúde mental. O monitoramento de variáveis como ansiedade, humor e cinesiofobia permite uma intervenção personalizada que reduz o tempo de inatividade e previne a reincidência de lesões.
+                        </p>
+                        <div class="flex gap-4">
+                            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex-1">
+                                <h4 class="text-xs font-bold text-[#D95A2B] uppercase mb-1">Prontidão Mental</h4>
+                                <p class="text-sm text-slate-500">Média atual de confiança (I-PRRS) nos atletas atendidos.</p>
+                                <div class="w-full bg-slate-100 h-2 rounded-full mt-4">
+                                    <div class="bg-[#1A4A73] h-2 rounded-full" style="width: 65%;"></div>
+                                </div>
+                            </div>
+                            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex-1">
+                                <h4 class="text-xs font-bold text-[#D95A2B] uppercase mb-1">Aderência</h4>
+                                <p class="text-sm text-slate-500">Taxa de cumprimento do protocolo de fisioterapia.</p>
+                                <div class="w-full bg-slate-100 h-2 rounded-full mt-4">
+                                    <div class="bg-[#D95A2B] h-2 rounded-full" style="width: 82%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-200">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase mb-6 text-center">Perfil de Humor (Brums/POMS)</h3>
+                        <div class="chart-container">
+                            <canvas id="moodChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SCALES SECTION -->
+            <section id="assessment" class="tab-content max-w-6xl mx-auto">
+                <div class="mb-10">
+                    <h2 class="text-3xl font-bold text-[#113E59]">Arsenal de Escalas Científicas</h2>
+                    <p class="text-slate-500">Protocolo de avaliação do LAFORTE para triagem e monitoramento.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="scales-grid">
+                    <!-- Cards de Escalas -->
+                </div>
+            </section>
+
+            <!-- INTERVENTION SECTION -->
+            <section id="intervention" class="tab-content max-w-6xl mx-auto">
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-[#113E59] mb-4">Estratégias de Intervenção Psicológica</h2>
+                    <p class="text-slate-600 max-w-3xl">Abaixo detalhamos as técnicas cognitivo-comportamentais aplicadas durante o processo de reabilitação no LAFORTE.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Técnica 1 -->
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-2xl bg-[#1A4A73] text-white flex items-center justify-center text-2xl font-bold">A</div>
+                            <h3 class="text-xl font-bold text-[#113E59]">Autodiálogo (Self-Talk)</h3>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-6">Uso de afirmações verbais para regular o foco e as emoções. Essencial para atletas com pontuações baixas na <strong>SCI (Sport Confidence)</strong>.</p>
+                        <div class="space-y-4">
+                            <div class="p-4 bg-slate-50 rounded-2xl border-l-4 border-slate-300">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase">Instrucional</span>
+                                <p class="text-xs text-slate-700 italic">"Mantém o joelho alinhado na descida do agachamento."</p>
+                            </div>
+                            <div class="p-4 bg-emerald-50 rounded-2xl border-l-4 border-emerald-400">
+                                <span class="text-[10px] font-bold text-emerald-600 uppercase">Motivacional</span>
+                                <p class="text-xs text-slate-700 italic">"Estou a ganhar força. Cada repetição aproxima-me do campo."</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Técnica 2 -->
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div class="w-12 h-12 rounded-2xl bg-[#D95A2B] text-white flex items-center justify-center text-2xl font-bold">G</div>
+                            <h3 class="text-xl font-bold text-[#113E59]">Goal Setting (Metas)</h3>
+                        </div>
+                        <p class="text-sm text-slate-600 mb-6">Estruturação de objetivos para aumentar a autoeficácia e o sentido de progresso durante longos períodos de paragem.</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-center gap-3 text-xs text-slate-600">
+                                <span class="w-2 h-2 rounded-full bg-[#D95A2B]"></span> <strong>Metas de Processo:</strong> Foco na execução (Ex: fisioterapia 3x/semana).
+                            </li>
+                            <li class="flex items-center gap-3 text-xs text-slate-600">
+                                <span class="w-2 h-2 rounded-full bg-[#D95A2B]"></span> <strong>Metas de Desempenho:</strong> Resultados físicos (Ex: +10% de força isocinética).
+                            </li>
+                            <li class="flex items-center gap-3 text-xs text-slate-600">
+                                <span class="w-2 h-2 rounded-full bg-[#D95A2B]"></span> <strong>Metas de Resultado:</strong> O objetivo final (Ex: Regresso oficial à competição).
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Técnica 3 -->
+                    <div class="bg-[#113E59] p-8 rounded-[2.5rem] shadow-xl text-white md:col-span-2">
+                        <div class="flex flex-col md:flex-row gap-10 items-center">
+                            <div class="md:w-1/2">
+                                <h3 class="text-2xl font-bold mb-4 text-[#F2AB6D]">Reestruturação Cognitiva</h3>
+                                <p class="text-sm opacity-80 mb-6 leading-relaxed">Fundamental para atletas com escores elevados no <strong>PTCI (Trauma)</strong> ou <strong>TKS (Cinesiofobia)</strong>. Consiste em identificar pensamentos automáticos negativos e substituí-los por avaliações realistas.</p>
+                                <div class="bg-white/10 p-6 rounded-3xl border border-white/10">
+                                    <h4 class="text-xs font-bold text-[#F2AB6D] uppercase mb-4 tracking-widest">Exemplo Prático</h4>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <span class="block text-[9px] font-bold text-rose-400 mb-1">CATASTROFIZAÇÃO</span>
+                                            <p class="text-[11px] italic">"Nunca mais vou conseguir saltar sem sentir estalos no joelho."</p>
+                                        </div>
+                                        <div>
+                                            <span class="block text-[9px] font-bold text-emerald-400 mb-1">REALISMO</span>
+                                            <p class="text-[11px] italic">"O inchaço é normal hoje. O meu enxerto está sólido e a fortalecer gradualmente."</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="md:w-1/2 bg-white/5 p-6 rounded-3xl border border-white/5">
+                                <h4 class="text-sm font-bold text-[#F2AB6D] mb-4 uppercase tracking-widest">Técnicas de Relaxamento</h4>
+                                <ul class="space-y-4">
+                                    <li class="flex gap-4">
+                                        <div class="text-xl">🌬️</div>
+                                        <div>
+                                            <p class="text-xs font-bold">Respiração Diafragmática</p>
+                                            <p class="text-[10px] opacity-60">Reduz a ansiedade pré-treino e a tensão muscular aguda.</p>
+                                        </div>
+                                    </li>
+                                    <li class="flex gap-4">
+                                        <div class="text-xl">🧘</div>
+                                        <div>
+                                            <p class="text-xs font-bold">Jacobson (Relaxamento Progressivo)</p>
+                                            <p class="text-[10px] opacity-60">Aprender a distinguir entre músculo tenso e relaxado para controlo da dor.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- IMAGÉTICA MOTORA SECTION -->
+            <section id="imagetica" class="tab-content max-w-6xl mx-auto">
+                <div class="mb-10">
+                    <h2 class="text-3xl font-bold text-[#113E59] mb-4">Workshop de Imagética Motora</h2>
+                    <p class="text-slate-600 max-w-3xl leading-relaxed">
+                        No LAFORTE, aplicamos o modelo <strong>PETTLEP</strong> (Physical, Environment, Task, Timing, Learning, Emotion, Perspective) para garantir que a imagética seja o mais vívida e eficaz possível.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                    <div class="lg:col-span-1 space-y-4">
+                        <button onclick="renderImagetica('cicatriz')" class="img-tab active w-full text-left p-5 rounded-3xl bg-[#113E59] text-white font-bold text-sm shadow-xl transition-all" id="tab-cicatriz">1. Cicatrização</button>
+                        <button onclick="renderImagetica('dor')" class="img-tab w-full text-left p-5 rounded-3xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all" id="tab-dor">2. Modulação da Dor</button>
+                        <button onclick="renderImagetica('fisio')" class="img-tab w-full text-left p-5 rounded-3xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all" id="tab-fisio">3. Tarefa Técnica</button>
+                        <button onclick="renderImagetica('perf')" class="img-tab w-full text-left p-5 rounded-3xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all" id="tab-perf">4. Emoção de Retorno</button>
+                    </div>
+                    
+                    <div class="lg:col-span-3 bg-white p-10 rounded-[3rem] shadow-sm border border-slate-200 min-h-[500px] flex flex-col">
+                        <div id="imagetica-display" class="animate-fadeIn flex-1">
+                            <!-- Injetado via JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CASES SECTION -->
+            <section id="cases" class="tab-content max-w-6xl mx-auto">
+                <h2 class="text-3xl font-bold text-[#113E59] mb-8">Casos Clínicos: Perfil do Aluno/Atleta</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8" id="cases-grid">
+                    <!-- Cards de Casos -->
+                </div>
+            </section>
+
+            <!-- RESEARCH SECTION -->
+            <section id="research" class="tab-content max-w-5xl mx-auto">
+                <div class="bg-white p-12 rounded-[4rem] shadow-2xl border border-slate-100 relative overflow-hidden">
+                    <h2 class="text-3xl font-bold text-[#113E59] mb-6">Plano de Pesquisa LAFORTE</h2>
+                    <p class="text-slate-600 mb-10 leading-relaxed max-w-2xl">Estrutura metodológica para o estudo das variáveis psicológicas na reabilitação traumato-ortopédica na FACISA/UFRN. <b> EM CONSTRUÇÃO </p>
+                    <div class="space-y-8" id="research-plan">
+                        <!-- Itens do plano -->
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <script>
+        // DATA: Escalas
+        const scales = [
+            { id: 'brums', name: 'Brums', full: 'Escala de Humor de Brunel', cat: 'emocao', desc: 'Monitorização rápida de Tensão, Depressão, Raiva, Vigor, Fadiga e Confusão.' },
+            { id: 'poms', name: 'POMS', full: 'Profile of Mood States', cat: 'emocao', desc: 'Escala padrão para o perfil de humor do atleta lesionado.' },
+            { id: 'tks', name: 'TKS', full: 'Tampa Scale for Kinesiophobia', cat: 'medo', desc: 'Essencial para medir o medo do movimento e risco de hipervigilância.' },
+            { id: 'iprrs', name: 'I-PRRS', full: 'Injury-Psychological Readiness to Return', cat: 'retorno', desc: 'Avalia a confiança do atleta em regressar ao nível competitivo.' },
+            { id: 'bis11', name: 'BIS-11', full: 'Barratt Impulsiveness Scale', cat: 'personalidade', desc: 'Identifica traços de impulsividade que afetam a aderência ao repouso.' },
+            { id: 'bpaq', name: 'BPAQ', full: 'Buss-Perry Aggression Questionnaire', cat: 'personalidade', desc: 'Avalia raiva redirecionada para a equipa clínica ou familiares.' },
+            { id: 'ptci', name: 'PTCI', full: 'Post-Traumatic Cognitions Inventory', cat: 'medo', desc: 'Mede pensamentos intrusivos e trauma após lesões incapacitantes.' },
+            { id: 'sci', name: 'SCI', full: 'Sport Confidence Inventory', cat: 'retorno', desc: 'Avalia a confiança do atleta nas suas capacidades técnicas.' },
+            { id: 'rosenberg', name: 'Rosenberg', full: 'Escala de Autoestima', cat: 'personalidade', desc: 'Mede a autoestima global que costuma cair em atletas com identidade única.' },
+            { id: 'eraiq', name: 'ERAIQ', full: 'Emotional Responses to Athletic Injury', cat: 'emocao', desc: 'Mapeia o choque emocional imediato pós-lesão.' }
+        ];
+
+        // DATA: Imagética Motora Scripts
+        const imageticaScripts = {
+            cicatriz: {
+                title: 'Imagética de Cicatrização (Healing)',
+                desc: 'Modulação Biofisiológica',
+                script: '"Visualize o local da lesão. Imagine o fluxo sanguíneo como uma luz dourada, levando nutrientes e oxigénio. Veja as fibras do tendão unirem-se como cabos de aço sendo trançados. Sinta a área quente, ativa e a fortalecer-se a cada respiração. O inchaço diminui, os tecidos renovam-se."'
+            },
+            dor: {
+                title: 'Modulação da Dor',
+                desc: 'Gestão de Sintomas',
+                script: '"Identifique a dor como uma cor pulsante, como vermelho vivo. Visualize um botão de volume em sua mão. Gire-o para a esquerda. Veja a luz vermelha transformar-se num azul fresco e calmo. Sinta a articulação ficar leve, relaxada e confortável. A dor torna-se um sinal distante, sob o seu controlo total."'
+            },
+            fisio: {
+                title: 'Tarefa Técnica (PETTLEP Focus)',
+                desc: 'Treino Proprioceptivo Mental',
+                script: '"Imagine que está na clínica da FACISA. Sinta o cheiro do ambiente, o toque dos seus ténis no chão. Visualize-se a realizar o agachamento unipodal perfeito. Sinta os músculos estabilizadores a vibrar. Veja o seu joelho firme, alinhado. Execute o movimento mentalmente com a mesma duração do físico. Sinta o domínio sobre o corpo."'
+            },
+            perf: {
+                title: 'Emoção de Retorno',
+                desc: 'Simulação Competitiva',
+                script: '"Você está de volta ao campo/quadra. Sinta a adrenalina. Visualize o momento exato de contacto físico. Imagine o impacto. O seu corpo responde com segurança. Sinta a euforia de executar a sua jogada principal. A sua mente já venceu o medo. O corpo apenas obedece com confiança inabalável."'
+            }
+        };
+
+        // DATA: Casos Clínicos
+        const cases = [
+            { title: 'Atleta de Elite (LCA)', profile: 'Jogador Profissional (22 anos)', issue: 'Alta Cinesiofobia (TKS) apesar de alta física.', strategy: 'Reestruturação Cognitiva + Imagética de Performance.' },
+            { title: 'Praticante Comum (Aquiles)', profile: 'Corredor de Rua (45 anos)', issue: 'Baixa Autoestima (Rosenberg) e Isolamento Social.', strategy: 'Goal Setting Social + Escala Brums Semanal.' },
+            { title: 'A Atleta Ansiosa', profile: 'Ginasta (18 anos)', issue: 'Trauma pós-queda (PTCI) e pensamentos intrusivos.', strategy: 'Relaxamento de Jacobson + Dessensibilização Mental.' },
+            { title: 'O Capitão Impulsivo', profile: 'Handebol (28 anos)', issue: 'Não cumpre repouso (BIS-11: 85).', strategy: 'Autodiálogo Instrucional + Contrato Terapêutico.' }
+        ];
+
+        // UI: Tab Switching
+        function switchTab(tabId) {
+            const target = document.getElementById(tabId);
+            if (!target) return;
+
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            target.classList.add('active');
+            
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('sidebar-active', 'text-white'));
+            const activeBtn = document.querySelector(`.nav-btn[data-target="${tabId}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('sidebar-active', 'text-white');
+                const titleElem = document.getElementById('current-title');
+                if (titleElem) {
+                    const text = activeBtn.innerText.trim();
+                    titleElem.innerText = text.split(' ').slice(1).join(' ') || text;
+                }
+            }
+
+            const sidebar = document.getElementById('sidebar');
+            if (window.innerWidth < 768 && sidebar) sidebar.classList.add('-translate-x-full');
+        }
+
+        // UI: Elements Rendering
+        function renderScales() {
+            const grid = document.getElementById('scales-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            scales.forEach(s => {
+                grid.innerHTML += `
+                    <div class="card-scale bg-white p-6 rounded-[2rem] border border-slate-200 flex flex-col justify-between">
+                        <div>
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-[#D95A2B] bg-[#D95A2B]/10 px-2 py-1 rounded mb-4 inline-block">${s.cat}</span>
+                            <h4 class="text-xl font-bold text-[#113E59] mb-1">${s.name}</h4>
+                            <p class="text-[10px] text-slate-400 font-medium mb-3 uppercase tracking-tighter">${s.full}</p>
+                            <p class="text-sm text-slate-600 leading-relaxed">${s.desc}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function renderImagetica(type) {
+            const data = imageticaScripts[type];
+            const display = document.getElementById('imagetica-display');
+            if (!display) return;
+            
+            document.querySelectorAll('.img-tab').forEach(b => {
+                b.className = 'img-tab w-full text-left p-5 rounded-3xl bg-white border border-slate-200 text-slate-600 font-bold text-sm hover:bg-slate-50 transition-all';
+            });
+            const btn = document.getElementById(`tab-${type}`);
+            if (btn) btn.className = 'img-tab active w-full text-left p-5 rounded-3xl bg-[#113E59] text-white font-bold text-sm shadow-xl transition-all';
+
+            display.innerHTML = `
+                <div class="animate-fadeIn">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-2xl font-bold text-[#113E59]">${data.title}</h3>
+                        <span class="bg-[#F2AB6D]/20 text-[#D95A2B] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">${data.desc}</span>
+                    </div>
+                    <div class="imagetica-script p-10 rounded-[2.5rem] shadow-inner mb-8">
+                        <p class="text-lg text-slate-700 italic font-serif leading-relaxed">
+                            ${data.script}
+                        </p>
+                    </div>
+                    <div class="flex gap-4">
+                        <button class="bg-[#D95A2B] text-white px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-[#113E59] transition-all shadow-md">Áudio-Guia</button>
+                        <button class="border border-slate-200 text-slate-500 px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-slate-50 transition-all">Exportar PDF</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCases() {
+            const grid = document.getElementById('cases-grid');
+            if (!grid) return;
+            cases.forEach(c => {
+                grid.innerHTML += `
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm hover:border-[#1A4A73] transition-all">
+                        <h4 class="font-bold text-[#113E59] text-xl mb-2">${c.title}</h4>
+                        <p class="text-xs font-bold text-[#D95A2B] uppercase mb-6 tracking-widest">${c.profile}</p>
+                        <div class="space-y-4">
+                            <div class="bg-slate-50 p-4 rounded-2xl">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Barreira Identificada</span>
+                                <p class="text-sm text-slate-700">${c.issue}</p>
+                            </div>
+                            <div class="bg-[#113E59]/5 p-4 rounded-2xl border-l-4 border-[#1A4A73]">
+                                <span class="text-[10px] font-bold text-[#1A4A73] uppercase tracking-widest">Conduta LAFORTE</span>
+                                <p class="text-sm text-[#113E59] font-medium italic">${c.strategy}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // UI: Sidebar Toggle
+        const btnToggle = document.getElementById('menu-toggle');
+        if (btnToggle) {
+            btnToggle.onclick = () => {
+                const s = document.getElementById('sidebar');
+                if (s) s.classList.toggle('-translate-x-full');
+            };
+        }
+
+        // CHARTS: Initialize
+        function initCharts() {
+            const canvas = document.getElementById('moodChart');
+            if (!canvas) return;
+            new Chart(canvas.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['Tensão', 'Depressão', 'Raiva', 'Vigor', 'Fadiga', 'Confusão'],
+                    datasets: [{
+                        label: 'Pré-Lesão',
+                        data: [40, 35, 38, 70, 42, 35],
+                        backgroundColor: 'rgba(26, 74, 115, 0.2)',
+                        borderColor: '#1A4A73'
+                    }, {
+                        label: 'Pós-Lesão',
+                        data: [65, 62, 58, 30, 60, 55],
+                        backgroundColor: 'rgba(217, 90, 43, 0.2)',
+                        borderColor: '#D95A2B'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { r: { ticks: { display: false }, pointLabels: { font: { size: 9 } } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+
+        window.onload = () => {
+            renderScales();
+            renderCases();
+            initCharts();
+            renderImagetica('cicatriz');
+        };
+    </script>
+</body>
+</html>
